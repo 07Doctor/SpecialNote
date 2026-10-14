@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A Secret Note For You</title>
+
+  <!-- Google Fonts: Pacifico & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      padding: 1.5rem;
+      overflow-x: hidden;
+
+      background-image: 
+        linear-gradient(rgba(10, 15, 30, 0.65), rgba(10, 15, 30, 0.85)),
+        url("surreal-cherry-3840x2160-26233.jpg");
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+    }
+
+    .viewport-box {
+      width: 100%;
+      max-width: 500px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 28px;
+      padding: 2.5rem 2rem;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5);
+      color: #fff;
+      transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease;
+    }
+
+    .slide-out-left {
+      transform: translateX(-120%);
+      opacity: 0;
+      pointer-events: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+    }
+
+    .slide-in-left {
+      animation: slideFromLeft 0.65s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+
+    @keyframes slideFromLeft {
+      from { transform: translateX(-100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    h1 {
+      font-size: 1.85rem;
+      text-align: center;
+      margin-bottom: 0.35rem;
+    }
+
+    p.subtitle {
+      text-align: center;
+      font-size: 0.95rem;
+      color: #cbd5e1;
+      margin-bottom: 2rem;
+    }
+
+    .input-box {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .pass-input {
+      width: 100%;
+      padding: 0.9rem 1.4rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+      text-align: center;
+      transition: border 0.2s, background 0.2s;
+    }
+
+    .pass-input:focus {
+      border-color: #f472b6;
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    .unlock-btn {
+      width: 100%;
+      padding: 0.9rem;
+      border-radius: 9999px;
+      border: none;
+      background: linear-gradient(135deg, #f472b6, #db2777);
+      color: #fff;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.15s ease, filter 0.2s ease;
+    }
+
+    .unlock-btn:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .error-msg {
+      color: #fda4af;
+      font-size: 0.88rem;
+      text-align: center;
+      margin-top: 1rem;
+      min-height: 1.2rem;
+    }
+
+    #noteContainer {
+      display: none;
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .note-header {
+      font-family: 'Pacifico', cursive;
+      font-size: 2.4rem;
+      color: #f472b6;
+      margin-bottom: 1.2rem;
+      font-weight: 400;
+    }
+
+    .note-content {
+      font-family: 'Pacifico', cursive;
+      font-size: 1.75rem;
+      line-height: 1.8;
+      color: #fdf2f8;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-bottom: 2rem;
+    }
+
+    .back-btn {
+      display: inline-block;
+      padding: 0.7rem 1.6rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: transparent;
+      color: #fce7f3;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="viewport-box">
+    <!-- Single Friend Lock Card -->
+    <div class="card" id="listCard">
+      <h1 id="friendHeading">A Secret Note</h1>
+      <p class="subtitle" id="friendSubtitle">Enter your passkey to unlock</p>
+
+      <div class="input-box">
+        <input type="password" class="pass-input" id="passInput" placeholder="Enter your passkey..." autocomplete="off" />
+        <button class="unlock-btn" onclick="unlockPersonalNote()">Unlock</button>
+      </div>
+
+      <div class="error-msg" id="errorMsg"></div>
+    </div>
+
+    <!-- Note Revealed View -->
+    <div class="card" id="noteContainer">
+      <h2 class="note-header" id="displayRecipient"></h2>
+      <div class="note-content" id="displayNote"></div>
+      <button class="back-btn" onclick="location.reload()">Lock Again</button>
+    </div>
+  </div>
+
+  <script>
+    // 1. Paste your encrypted objects here (use lowercase keys):
+    const VAULT = {
+
+      "garima": {
+        "displayName": "Garima",
+       "salt": "5a29df87556a5012679264eaf993a6a6",
+       "iv": "61bf2df57a73848a22afc2b4",
+       "ciphertext": "637aec55d4474feecc822498ee16dde50498177fdf445bddc3a8c4abfb3a86615068fc6a4caa5d701079edfa78778c4ef167b0067b81460161dd731c2addfeb1ecc5e078776f1ee9f7850ae7236f716a83f12e8561e17812c047426334f3256e9d9bc3716cc6c0e7d5971724602e08fa01ee1bf0246c6ace5b5a6194d099868b1150391f82716f512f9074b68769cf2b4e031efbd44f33bfcfafbab078e4864f57438e5651c3569846cfd187363e5a187d0c5027d93d927861fd042e2f882a0d984d044541b496556f617baf0955173ada4c3d74a0d462b2811921683c7adc950629d31641f092d88fe3f8a95f8dabe4fd332c7b85232f8d99e568898b3d6b036b38e28825e47e6c92daaa842ac3bc499d1b04cc743319f7c84184368382511c0bbcd8a6e73512705698cd813de351c85d43477808e1ad5a9b8a664042e29cb1be3e4f5145ebdbc85137e9ed4248444391e5a7033d328fc4e06ffa4ad83e57a359f8f5d7fd3a007c322c54ce0f56f700361aaab611fee0d78fbaa429beac1c39f850b265a00749a869f26b38f05756e331d150c0b046b5f856f62db3f64d75d6c3fd9c9fef3fd7430eebc3e5ce942721b7170f7b1c2e21eafcd7638e8ce086131c104d434dcefb2ed4b4ae142271ffe676a1548bbf059ae46fcb499a6aa19e3a6704a52a906e52a83d85f53fc15701abf182890d9b46526d019167d258e3d78403574607e8cfdeda563a8ba042a41301ea92ccba87b4dfdec095244e3315784590343585ac53176d84c897af46621407c9aec2230acf4b66a0e5adb351026de7e45916220683a0921a4f5179b35391d9caf468a113d91d211e5b622ab94179b431d88ed813fb385bba5503d7ea46d377355ddcea699e1e34eb99a62a0da257761499ca9d25c045a0f2ca399bb5006482179639b5cf02e966c1eb3bfd8e9c1215479b69d818cabe6db4b782e8fcfff464652fb71f82a4cd4fcfab98b591401f5f02dd1e5ce3a4bba11dd636293860cb98cc6098bc503e6b3403723b1b9b4e5accc237d62775a2cda22cb984041023c374d49739a3743f5556201490109c0fcd4ff8b6f35abb31c4d311d7c684770cb3ed645c21e7602382ff13990875163c173e3e59a60996f6794338674f90cc3d4057c6e37a571b770c6cba936b1dd90bbe4fdab216412995617b3c2682f906cf8d922ca03d0292fa8a235f3ff71791df1e29967d4ac0b92432e810f2268060838dabcf09e6714d17d6bf11693ab7145cc95b41d1abe193641a47f3f35d880ec3a367a18b4a5909bd3804c68411d8c0ae08216ef7d1703f66258fc9eb4965cfe490777586ab0d02dadf18ac2837f45c277718bac4da536c8724b4cbdd04bcb562ea23960afea7327c55f0008bfcdcc234b3a659f546fee4cd97da22ecd982939bb6255887d81814cea887d5bb9a0dead62ff550775dd53938d0fbd4ead133bf55d310f2a724f25c6d2f89082dc64367b95327c5e06fda6f28349b687f523379f9483a77819087fe7996bbe6d198376400713e96f83562cd931b8d764f58a353db47ee0eb97ca9f64356cd858862d33753850e14fb1b69224fa47ae0aef2f498822091ffbd306f4481e20e6a1b9ea43177157dae9f4c9871cdca7bef780d27eeb65df740b3f2cc32e77ed4f8a5da24374365cf363fc0fef9013f5d4a20c2b3e56c7142c6ded273238b281abe86b8b5bdad3f9dc8d886f13d6cd549ae5fa8839f05d482ff1783c3d6bb327d712218fb4df16d1a81bd1db221e3e0e6e77f25a55d589a90f7c33047ed1cf2f04c1dce6c9d523628730009a3dc605b19ca152fca6e49f35691d24fe4e104dd0fe07181220c3363834ef08775e18af85d8024abdba8542a4a92c64d64eb90571af8bc5a1d923059d128237f96a3cc6e94b82063aa125e3ec57c1564f1a24fffbe94ad434b059c47b7daa8a0aef28b9eb12e67593960601d6d92942359e1663485ec77dc7a5a0e895dad989ac6470f9195a15492ce6b1390d2ef3bf5459ceddb38f9f27a2ff062157fc09a3953601dbb8ee0a3313c6d897e22897d36c0e8b98dcb0501e5f8ef41f2461da79c17095f9b006b42b6edf160a51a2674b13b3b0606e7e3be4127fa5b6f90b86b11a07d1988a8f1bc6f66da22d0414dee6a15c2a8100dcdb4a325c5fb7ae29d91aaef7a67865e939c4f1947a01ba43165dc051c2e94d1c304c4c5cc1fd99b080e8af902f243069a463939af988b74fc6bece211937bb6d43fe3905c261816af693fca12bd59a87efff7396a2b79f0c3a87f77b35e265a4e6c782ff4425d03cd3e6b5d52b1ced60ff855e9fd042939fb0b6c5246011daaeb2a6cf6213de04afb260707462e4815224893142dd20439177c2f290bd3bc366db50add1b86dd57d45d8ae5b5bf643cb57e8d243596ed5362e705b2611485f55c9801459aacde4b555f8dd8e56c04ef94f6b85ff1347779260bc8705d92f46fcd1758c7e04b0ff14d815cb04666c8fbfbde44637649f0cd03b869cebfa95c829ff59082298602c1a74ac3a32e236ddc59b285e64cc299f79bb336d7cfbe5976e18f516cf4cff31c014d50375d9216c94be7527b02217ac2383d8aab80d794675c87e527bcae93a1a362751caa628d0198a89c216db1f0baedccef1ed4ac551b4f43a9808036d9d48f5dbbd28c95fcb68ccdb26d890e7aceb53834ea23243b8cd1d1cb4b657251b2cac227622dd5818b065f46143c81c1f05930c81117671378eeedc6da64b7dacba7bb1c471498087fdecd9856896dbf8b1caa50964f91cc9eabb4501f064fc32d491b0018b83708eada73a14c823679a4b153ea209b4bffbc78c9bb9bab650b99527b9432828a09b337cc55cce6200d689b39c6f0c063f48160eb9a4055b1a108437a4fba7cca20bf7570433c9161b6d5029305a5c2392139234818489d9c93186a24e16d99519f8e6788916831f6f55f6938ee1f13ece2c554c9d0f3617a06adf0e7b89666deb83b1e73e41e8565228ec6583242b065253ef5ac2bf0c264a0a3f83a6d221b7252ef3c080e30c69f079e50b781307b7af48e71b3b4bf102d92ed9eb05e3f9af6e3bf7da8d1bcf93ff7bd09c2df80c36b646422f9fe1ca28d41397511393b566166e8f6fb9be2bed874c5ae6500d6b411cfb1243696c9aa580e39707d6dee5cb099d1fab939dab15936323f4516274ce91ff4ad74b6622321961d7b1f635693a6c4b9b1bcffa1be3b27d4d4a27f5332a03564ada82a851b77564cdec60359087a307beac63b62d12c153c2e9fffe8818456a941b027681921b9459074aad879f327dad86cd9c53b7f21d5c16d6ab4945e2fdd9fa590b2ef7e561eae04abc4766f838bbd48d084775407797296355ce62692d3df30635ddf7e8a8cc033e3b5083e7377819f9f24c6308d8b5917208c8afbad9e0ec8272757a1b5d637897c1ddf4059ad7e5829c74927b6dc3a7b2a3cb831f6712a81f8b5369699496a5b92bf126b01682fae9c260d73d4311274f1775cff2b60ea9ab4a763cf417874ff92bce2f424e964e3073f1d7187b5f624f37cc0d80934c7918a00630eff4276869037daa1352409e6a447adc304fc1c1e495e11b4ed36c1b425dc78318e130061429072b3ebc35586bcaf0e29232a5ae51f6d093dab175cee96a9cc645bcc87f845a0b8dad561f1862296e0dad8d2a03eff6a9058f7e32629d086dcb6d0160e8e103911979460c28f94bce146d0304ab17d3dd889e2bce442c1609fceefbb5bc37a6d4e8ee49ad444f4aeeb67f9448164deaf796ca006a9f7b6649d956ac6c92fe68582a4e7ea7c3ca3e24b86278cef43a00a1712"
+
+      },
+
+      "shweta": {
+        "displayName": "Shweta",
+       "salt": "96f274dd4eec7e2ce85b92968446d1c4",
+       "iv": "2322808e9cb5cf340314c369",
+       "ciphertext": "402856f966440a080d7b9b9462a9d4c9e2b5a23409a6aa7cc3431d515695b8bffcd4c3b04c3b05f1c1c37901d1125ff1af1cfbe9830bb3924e5c02dbdfdb356243616247133611d88589cafb1c69f646787bec63b71c17dfca4dc6db6d9cd624f87b05cad12bb496e822b08e19b47d2498f64ba6389d3be465e769412aca02cdb8cbc66aabfc7c192f40fbc04fc0ecbf2f9dc2ee637b74725dfcc91c9e4c1dca7fe8b5654234058a920235f8b97f05dfa402b1110d1e9a9bf44becc1dd64ef1c78474c1d2605cfc4f0365e0966aae240ff3eba7b6f311b26dfe3a5fb92f6d523896d85afb06fe10a77f740f82f4cf9bf8d5ca1438239d8ba5df3c1f56e9032389e1ec343610c6bdd25094ab6eba92ac6506f77f19dfe936fe38d415410be03ea51f7f2f876427e31051cfda6ddfa4977dd9cd07dc49d4d5828119a15716b540a9908ae432977de60c238a6964d68517c7313f9fca8f53d1bdd4810e1a1273d99211ff1025c845b1415f4fb72fc7a0cc3811ae7e171e787f6376d665e519043ea14f03752e53a9d37dfef833ed7f16e2a2d1ae5092c2d02395ba3b3bd5fd779f33914a58ede9d3e71d9c8c8c29314d3841d5ef7f064224441e6d71561589d603148c5dfde97b2eea217b142266b17e066686ebe1f815ce8aed9a33546c6c0aaf785159f570f8483dfe55df9f78c7b6e00256f5fe7cef90e9269a17624842d8a26d04fe6c195ece106ecd80028846de96987ad677f320fc64f3f935a961554ed3764012c66cef3d8692c6c569748200fdabd93fe3ec5d280890ec75fd9d8dae524b6ee3241caf5cc704d7da0ec2af02e6e95bc22339302fa8c0681881da85024675dc0656492ff962e5fa74fbddb3e0539f408c9f9df935640d609916116bc126f72016f7c5fa6c7e2b55d9c2623d0e857df11e5da6e717609532fdf352f2c5b722733dfe3b27bb62a87571740db80759462e4be50544c62d50be481cf274823b5153beaf53e68b294ae87c16738692d88fb89063051da9fe9c27d5355c43936fbdd1524676ba6996aa2096cdfc2cd26c2c0b1aa56c75e3f91ba6f178cd58041c9b6e218a493ccd8c52efb86a7af9a35221ba0b810ea632d85a08f23f3e888adaeb3319ec50bbae730cecee41e4bc7258b07141941fa30c070dd8bac0911266ea0098b9810a0e8727a726a45dc893da5c386d0398b21f25cedcc3a989730ce45acaaca9abaf9466c7fa20aebfb1e4364fc4ef09eefa3be1148fb572fa95ab39e8d0eb3b40a818973a4b10550cee176664434061df1daab13dcda0dbbc7e7358140710bc6c5336727dbd3194097925ea083888907e2981fbc5d29321bfd5bea4435b4ca6b5ae928c6420e79b1287e5597a0a5e3b8bac63fbf381f41c613487e3ed6729fe1a8c47811b15b43c9f71a4c1a5e396c4afd648eec990d5550a945c6e13a7be6d83df84fc5e87ebec998f5ecb004a8c6ffa547a4afc74c7cbf0095a41f6ec09ec447b92107927b6f0492eb0cc4a6b3d2d89499714187560bf2e65be4e0c5a6565c82677e425d7be3de851b9f448436cb59fb9ff8fe5937d4aaef1893256a55e7f67b6d3f33a9c7c647d7904b47399e5b3a1c8b2e274ef8f597f36b6bcf161f5a6a6c2bdc15d9845136dc9a3273957c603507bfbf6731908fd600bf1edefb289853ce2f01cb94ce89992a7682dc46775d76546d58003d02c41cc871a3a2ee45a357b04e2b64e50a05300ded620d398162d88d66d31d81bcb72b30bbd78dddf56de136b7b7c0bdd38cb24c060dfc2d792ead2e7e82fc83d6e5efeefdec87b5b35c1ba02bc746cf0300e77d58c5ab289be14aabe037f6cbb9a27f364fdaf8b7aea936be9ef9215616f75783db12911f361a4692628bd9826f9aad6a544e44a18f06680a592feceaa4e996fe503887a871557a77bfe63f11c61b8284c3d0854b5c59509d0c26e53e77c478ffe1803ae6b817b92a8b144de6587a67981ed0d01e7d4fec21c7d1c262ba79f8bf3fe79bd54503b7c8915c293e21f5a41491685277ad7542eff8aabe154d5f8276d8fd2d1cf3aeeb57137044fff046a2030dc6f61be9c724b3712da448e12acb7dd648e62c8f4f62f140b7574f43c6571c82cba2d72c06b9169baab7b9814c10c7a5b3d51a720822d57171f6687f"
+
+      },
+
+      "shikhar": {
+        "displayName": "Shikhar",
+       "salt": "a25f436a5045c0dbdeff37fd1da40193",
+       "iv": "8d9885f2b021809b4ba6bff2",
+       "ciphertext": "e4c0fc11fb4729caee2adbe8e56f5fa46ae2d8a68fdba4598728bc5ef3b6da682a573e16da20ace3a46911e3b6823c004fa4abbdcbce38fd4b42a4ae31f0b0bc131d45cb15de18626549fe45136aa4eba1e859e7e01780e92c5a3e8dbfa3f8509d0a841aaab47a6a406c8035b2f0f2d4308e7e7b3b2dcce4be2e94f46ec44407d79377036fec92650cee45fb6c6282f480f58427d334d9356b046d6d31ef4cdd7e91f96223f1406c48f791b6b95f53a9c4346b6bb5560769a438cf74a3682d26058732ba37d6121b091e6ddbbcae6be97a276b590ce94230103a0f191cdca6fe83b2114ce2a06619fbd40d1dff5a50f495316af0b7c77eebf66767d53390d684e5163b33e77b53a132c1fdc3bcdd4c64452f474c64e973fb8b34e5869e3ea4eb5c43665a4f75acc091dfac39612ebd81a250fb7543cf0fa698368c9235bd3ca6bd1750c4f948f709f7ce2ebefc83338c7f32f2da9cfdbfeb8f5d70325af37cc5a74cb7ab0fe7375e9d0e9c5acc04d24a2cc28431b57313040d72eafe144c389e26256dd00852b771f2a2fc29a113d5a0c7a9fcf8a876dae270b4b844dc5fc3afbee6e73ae0c5d79e8913a6c614a0f63fdfe2ea1282ddceea1cd18b23b5b680c09e5eb68b0f99e82d81f56d741293ce8c07736124056d31f3f32f2aa00d55b102d352359b99917deb4859e14cbe590e65f033cb7ad40d0021f0ca785f1eaf46d116f5929c384c0f8b0fe00b1bbd84a2db6f0af95b7176f0e48b543861a96d1ce64a8b04c26acc328d771bb654889f1b3e53e229081a9ddc804686d67791650b84ac767e14fb5ecb4b833e60b953e2c6fc2a03de0ce5900c6c84bd71b8a68e9e9719d886a9e994e9d1078f6ffbd1c7e7a85c71dab9e4e6a02eeec7971be2524fe6c7524d4927d9eca359d87b060710ac355c5c3cfbb4a9c04ec20a11487636a7cd471a1cc84269098e613054be91e098453663472f865983a6d5e4254fdb6dacb2fb"
+
+      }
+
+    };
+
+    // 2. Read the "?to=" parameter from the link
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetFriend = (urlParams.get('to') || '').toLowerCase().trim();
+
+    const heading = document.getElementById("friendHeading");
+    const subtitle = document.getElementById("friendSubtitle");
+    const errorMsg = document.getElementById("errorMsg");
+
+    // Personalize the screen immediately based on the URL
+    if (targetFriend && VAULT[targetFriend]) {
+      heading.textContent = "For " + VAULT[targetFriend].displayName;
+      subtitle.textContent = "Enter your secret key to reveal your note";
+    } else if (targetFriend) {
+      heading.textContent = "Note Not Found";
+      subtitle.textContent = "This personal note link is invalid.";
+      document.querySelector(".input-box").style.display = "none";
+    }
+
+    async function unlockPersonalNote() {
+      const pass = document.getElementById("passInput").value.trim();
+      errorMsg.textContent = "";
+
+      if (!targetFriend || !VAULT[targetFriend]) {
+        errorMsg.textContent = "Invalid recipient link.";
+        return;
+      }
+
+      if (!pass) {
+        errorMsg.textContent = "Please enter your passkey.";
+        return;
+      }
+
+      const record = VAULT[targetFriend];
+
+      try {
+        const enc = new TextEncoder();
+        const keyMaterial = await crypto.subtle.importKey(
+          "raw", enc.encode(pass), "PBKDF2", false, ["deriveKey"]
+        );
+
+        const salt = new Uint8Array(record.salt.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+        const iv = new Uint8Array(record.iv.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+        const cipherData = new Uint8Array(record.ciphertext.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+
+        const key = await crypto.subtle.deriveKey(
+          { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
+          keyMaterial,
+          { name: "AES-GCM", length: 256 },
+          false,
+          ["decrypt"]
+        );
+
+        const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, cipherData);
+        const dec = new TextDecoder();
+        const finalMessage = dec.decode(decrypted);
+
+        // Slide out list card to the left and reveal note
+        const listCard = document.getElementById("listCard");
+        const noteContainer = document.getElementById("noteContainer");
+
+        listCard.classList.add("slide-out-left");
+
+        setTimeout(() => {
+          listCard.style.display = "none";
+          document.getElementById("displayRecipient").textContent = "Dear " + record.displayName + ",";
+          document.getElementById("displayNote").textContent = finalMessage;
+
+          noteContainer.style.display = "block";
+          noteContainer.classList.add("slide-in-left");
+        }, 300);
+
+      } catch (err) {
+        errorMsg.textContent = "Incorrect passkey. Please try again.";
+      }
+    }
+
+    // Allow Enter key to submit
+    document.getElementById("passInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") unlockPersonalNote();
+    });
+  </script>
+</body>
+</html>
